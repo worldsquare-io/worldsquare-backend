@@ -23,4 +23,3 @@ class CreateReply(BaseModel):
     timestamp: datetime
     location: list
     message: str
-    parent: str

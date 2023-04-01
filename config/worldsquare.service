@@ -1,0 +1,12 @@
+[Unit]
+Description=Worldsquare Production Web Server
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/cljj-backend
+ExecStart=uvicorn app.main:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
