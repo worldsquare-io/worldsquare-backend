@@ -1,6 +1,10 @@
+import datetime
+import json
+import nanoid
 from fastapi import FastAPI
+from pydantic import BaseModel
 from mongoengine import connect
-from app.model import ItemModel
+from app.model import ItemModel, CreateRoot, CreateReply
 
 connect('worldsquare')
 app = FastAPI()
@@ -9,15 +13,21 @@ app = FastAPI()
 def index():
     return {"msg": "hello world"}
 
-@app.get("/item/{id_}")
-def get_item():
-    # item = ItemModel.objects(pk=)
-    ...
-
-@app.post("/item/")
-def post_item():
+@app.post("/items/")
+def post_item(root: CreateRoot):
+    print(root)
     item = ItemModel(
-        message="test"
+        oid = nanoid.generate(),
+        root = True,
+        **root.dict()
     )
     item.save()
-    import pdb; pdb.set_trace()
+    return json.loads(item.to_json())
+
+@app.get("/items/{oid}")
+def get_item():
+    item = ItemModel.objects(pk=oid).first()
+
+@app.post("/items/{oid}/replies")
+def post_resplies(reply: CreateResponse):
+    ...
