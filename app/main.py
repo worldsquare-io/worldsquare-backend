@@ -11,7 +11,7 @@ connect('worldsquare')
 app = FastAPI()
 
 origins = [
-    "https://worldsquare.io"
+    "*"
 ]
 
 app.add_middleware(
@@ -38,7 +38,7 @@ def post_item(root: CreateRoot):
 
 @app.get("/items")
 def get_items():
-    items = ItemModel.objects()
+    items = ItemModel.objects(root=True)
     return [json.loads(i.to_json()) for i in items]
 
 @app.get("/items/{oid}")
@@ -61,5 +61,5 @@ def post_replies(oid, reply: CreateReply):
 
 @app.get("/items/{oid}/replies")
 def get_replies(oid):
-    items = ItemModel.objects(parent=oid)
+    items = ItemModel.objects(parent=oid).order_by("timestamp")
     return [json.loads(i.to_json()) for i in items]
