@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from mongoengine import Document
 from mongoengine.fields import *
 from pydantic import BaseModel
@@ -12,6 +13,12 @@ class ItemModel(Document):
     variant     = StringField()
     root        = BooleanField()
     parent      = StringField()
+    distance    = FloatField()
+
+    def json(self):
+        dic = json.loads(self.to_json())
+        dic['timestamp'] = dic['timestamp']['$date']
+        return dic
 
 class CreateRoot(BaseModel):
     timestamp: datetime

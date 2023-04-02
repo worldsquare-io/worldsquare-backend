@@ -1,9 +1,10 @@
 import datetime
 import json
 import nanoid
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from geopy import distance
 from mongoengine import connect
 from app.model import ItemModel, CreateRoot, CreateReply
 
@@ -34,32 +35,45 @@ def post_item(root: CreateRoot):
         **root.dict()
     )
     item.save()
-    return json.loads(item.to_json())
+    return item.json()
+
+# @app.post("/image")
+# def post_image(file: UploadFile):
+#     print(file)
+#     return "true"
 
 @app.get("/items")
 def get_items():
     items = ItemModel.objects(root=True)
-    return [json.loads(i.to_json()) for i in items]
+    return [i.json() for i in items]
 
 @app.get("/items/{oid}")
 def get_item(oid):
     item = ItemModel.objects(pk=oid).first()
-    return json.loads(item.to_json())
+    return item.json()
 
 @app.post("/items/{oid}/replies")
 def post_replies(oid, reply: CreateReply):
-    print(reply.dict())
+    reply_dict = reply.dict()
+
+    parent = ItemModel.objects(pk=oid).first()
+    child_loc = reply_dict['location']
+
+    dist = distance.distance(child_loc, parent.location).kilometers
+    print(dist)
+
     item = ItemModel(
         oid = nanoid.generate(),
         variant = "local",
         root = False,
         parent = oid,
-        **reply.dict()
+        distance = dist,
+        **reply_dict
     )
     item.save()
-    return json.loads(item.to_json())
+    return item.json()
 
 @app.get("/items/{oid}/replies")
 def get_replies(oid):
     items = ItemModel.objects(parent=oid).order_by("timestamp")
-    return [json.loads(i.to_json()) for i in items]
+    return [i.json() for i in items]
